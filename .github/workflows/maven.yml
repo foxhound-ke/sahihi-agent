@@ -1,17 +1,22 @@
-name: Java CI with Maven
+name: Build the Windows agent
+
+# Sahihi: build on Windows, as the agent ships for Windows only for now, and
+# keep the zip (installer + JRE) as an artifact with its SHA-256. Unsigned: the
+# demo doesn't need Authenticode; production does (see SAHIHI.md).
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  windows:
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -23,5 +28,20 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
-        run: mvn -B clean package --file pom.xml
+      - name: Build and test (jar, installer, Windows zip)
+        run: mvn -B -ntp clean install
+
+      - name: SHA-256 of the zip
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash target/esup-dss-client-win64.zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  esup-dss-client-win64.zip" | Out-File -Encoding ascii target/esup-dss-client-win64.zip.sha256
+          Get-Content target/esup-dss-client-win64.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sahihi-agent-win64-${{ github.sha }}
+          path: |
+            target/esup-dss-client-win64.zip
+            target/esup-dss-client-win64.zip.sha256
+          if-no-files-found: error
