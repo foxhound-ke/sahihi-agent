@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.esupportail.esupdssclient.api.*;
 import org.esupportail.esupdssclient.api.plugin.*;
 import org.esupportail.esupdssclient.json.ByteArrayTypeAdapter;
+import org.esupportail.esupdssclient.windows.keystore.WindowsKeystore;
 import org.esupportail.esupdssclient.json.CertificateTypeAdapter;
 import org.esupportail.esupdssclient.json.LocalDateAdapter;
 import org.slf4j.Logger;
@@ -28,8 +29,11 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -60,10 +64,13 @@ public class RestHttpPlugin implements HttpPlugin {
 		// Sahihi: never log a request body (it holds what is to be signed).
 		final String payload = IOUtils.toString(req.getInputStream(), StandardCharsets.UTF_8);
 
-		// Sahihi: only the two routes Sahihi uses, each with a JSON body (the
-		// request processor has checked it's a JSON POST). Upstream's GET forms
-		// (?dataToSign=...) and /identityInfo and /authenticate are gone.
+		// Sahihi: only the routes Sahihi uses: /info, and the two that open
+		// dialogs, each with a JSON body (the request processor has checked it's
+		// a JSON POST). Upstream's GET forms (?dataToSign=...) and /identityInfo
+		// and /authenticate are gone.
 		switch(target) {
+		case "/info":
+			return info(api);
 		case "/sign":
 			return signRequest(api, payload);
 		case "/certificates":
@@ -72,6 +79,25 @@ public class RestHttpPlugin implements HttpPlugin {
 			return new HttpResponse("{\"success\":false,\"error\":\"not.found\"}",
 					"application/json;charset=UTF-8", HttpStatus.NOT_FOUND);
 		}
+	}
+
+	/**
+	 * Sahihi: GET /rest/info, which the Advanced page calls first to find the
+	 * agent and check its version: {"name", "version", "keySources"}. It opens
+	 * no dialog and says nothing about the certificates.
+	 */
+	private HttpResponse info(final EsupDSSClientAPI api) {
+		final Map<String, Object> info = new LinkedHashMap<>();
+		info.put("name", api.getAppConfig().getApplicationName());
+		info.put("version", api.getAppConfig().getApplicationVersion());
+		final List<String> sources = new ArrayList<>();
+		for (final Product product : api.detectProducts()) {
+			if (product instanceof WindowsKeystore) {
+				sources.add("windows-certificate-store");
+			}
+		}
+		info.put("keySources", sources);
+		return new HttpResponse(customGson.toJson(info), "application/json;charset=UTF-8", HttpStatus.OK);
 	}
 
 	private static HttpResponse badRequest() {
