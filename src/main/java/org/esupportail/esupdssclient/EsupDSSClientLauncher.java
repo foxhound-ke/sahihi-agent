@@ -27,6 +27,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 public class EsupDSSClientLauncher {
@@ -99,8 +102,32 @@ public class EsupDSSClientLauncher {
 
 		Properties props = new Properties();
 		loadPropertiesFromClasspath(props);
+		loadPropertiesFromConfigFile(props);
 		return props;
 
+	}
+
+	/**
+	 * Sahihi: settings that differ per deployment (the origins allowed to call the
+	 * agent, an issuer filter) come from a file outside the jar, never from code.
+	 * The file is the one named by the system property {@value #CONFIG_PROPERTY}
+	 * or, by default, {@value #CONFIG_FILE} in the working directory, which the
+	 * installer's shortcut sets to the install directory. Its values override the
+	 * defaults in the jar's application.properties.
+	 */
+	static final String CONFIG_PROPERTY = "sahihi.agent.config";
+	static final String CONFIG_FILE = "sahihi-agent.properties";
+
+	static void loadPropertiesFromConfigFile(Properties props) throws IOException {
+		final Path file = Paths.get(System.getProperty(CONFIG_PROPERTY, CONFIG_FILE)).toAbsolutePath();
+		if (!Files.isRegularFile(file)) {
+			logger.warn("No config file at " + file + "; no web page may call the agent.");
+			return;
+		}
+		try (InputStream in = Files.newInputStream(file)) {
+			props.load(in);
+		}
+		logger.info("Config file " + file + " loaded.");
 	}
 
 	private void loadPropertiesFromClasspath(Properties props) throws IOException {
