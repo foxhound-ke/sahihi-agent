@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sahihi agent spike</title>
+<style>
+  :root { color-scheme: light dark; --ok: #1a7f37; --bad: #cf222e; --muted: #6e7781; }
+  body { font: 15px/1.5 system-ui, sans-serif; max-width: 52rem; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.4rem; }
+  section { border: 1px solid var(--muted); border-radius: 6px; padding: .75rem 1rem; margin: 1rem 0; }
+  button { font: inherit; padding: .35rem .8rem; }
+  pre { white-space: pre-wrap; word-break: break-all; font-size: 12px; max-height: 14rem; overflow: auto; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+<h1>Sahihi signing agent: spike (milestone 3.1)</h1>
+<p>This page's origin: <strong id="origin"></strong>. The agent only answers origins listed in
+<code>cors_allowed_origin</code> in <code>sahihi-agent.properties</code>. Serve this page on
+<code>http://localhost:8000</code> (allowed by default) and again on <code>http://localhost:8001</code>
+(not allowed) for the foreign-origin check.</p>
+<p class="muted">Chrome and Edge may ask whether this site may connect to apps on this device: choose Allow.</p>
+
+<section>
+  <h2>1. Find the agent</h2>
+  <button id="info">GET /rest/info</button>
+  <pre id="info-out"></pre>
+</section>
+
+<section>
+  <h2>2. Choose a certificate</h2>
+  <p class="muted">The agent shows its certificate picker (only certificates with nonRepudiation).</p>
+  <button id="certs">POST /rest/certificates</button>
+  <pre id="certs-out"></pre>
+</section>
+
+<section>
+  <h2>3. Sign</h2>
+  <p class="muted">Signs a short known text. With strong key protection, Windows asks first.</p>
+  <button id="sign">POST /rest/sign</button>
+  <pre id="sign-out"></pre>
+  <button id="save" disabled>Save the result for tools/verify_signature.py</button>
+</section>
+
+<section>
+  <h2>4. Must be refused</h2>
+  <p class="muted">A plain-text POST (no CORS preflight) to /rest/sign: the agent must answer 415 and open no dialog.</p>
+  <button id="simple">POST text/plain to /rest/sign</button>
+  <pre id="simple-out"></pre>
+</section>
+
+<script>
+"use strict";
+const AGENT = "http://127.0.0.1:9795";
+const result = { origin: location.origin, browser: navigator.userAgent };
+const $ = (id) => document.getElementById(id);
+$("origin").textContent = location.origin;
+
+function show(id, ok, text) {
+  const out = $(id);
+  out.className = ok ? "ok" : "bad";
+  out.textContent = text;
+}
+
+async function call(path, options = {}, timeoutMs = 120000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(AGENT + path, { ...options, signal: controller.signal });
+    const text = await response.text();
+    let body;
+    try { body = JSON.parse(text); } catch { body = text; }
+    return { status: response.status, body };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function json(body) {
+  return { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
+}
+
+function base64(bytes) {
+  let binary = "";
+  bytes.forEach((b) => { binary += String.fromCharCode(b); });
+  return btoa(binary);
+}
+
+$("info").onclick = async () => {
+  try {
+    const r = await call("/rest/info", {}, 2000);
+    result.info = r.body;
+    show("info-out", r.status === 200, `${r.status}\n${JSON.stringify(r.body, null, 2)}`);
+  } catch (e) {
+    show("info-out", false, `Can't reach the agent (not running, or the browser's permission was refused): ${e}`);
+  }
+};
+
+$("certs").onclick = async () => {
+  try {
+    const r = await call("/rest/certificates", json({}));
+    result.certificates = r.body;
+    const ok = r.status === 200 && r.body.success === true;
+    const summary = ok
+      ? `keyId ${r.body.response.keyId}\nchain of ${(r.body.response.certificateChain || []).length}`
+      : JSON.stringify(r.body, null, 2);
+    show("certs-out", ok, `${r.status}\n${summary}`);
+  } catch (e) {
+    show("certs-out", false, String(e));
+  }
+};
+
+$("sign").onclick = async () => {
+  const chosen = result.certificates && result.certificates.response;
+  if (!chosen) { show("sign-out", false, "Choose a certificate first."); return; }
+  const text = `Sahihi agent spike ${new Date().toISOString()}`;
+  const toBeSigned = base64(new TextEncoder().encode(text));
+  result.toBeSigned = toBeSigned;
+  try {
+    const r = await call("/rest/sign", json({
+      tokenId: chosen.tokenId, keyId: chosen.keyId,
+      toBeSigned: { bytes: toBeSigned }, digestAlgorithm: "SHA256",
+    }));
+    result.sign = r.body;
+    const ok = r.status === 200 && r.body.success === true;
+    show("sign-out", ok, `${r.status}\n` + (ok
+      ? `${r.body.response.signatureAlgorithm}, ${atob(r.body.response.signatureValue).length}-byte value`
+      : JSON.stringify(r.body, null, 2)));
+    $("save").disabled = !ok;
+  } catch (e) {
+    show("sign-out", false, String(e));
+  }
+};
+
+$("save").onclick = () => {
+  const blob = new Blob([JSON.stringify(result, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "spike-result.json";
+  a.click();
+};
+
+$("simple").onclick = async () => {
+  try {
+    const r = await call("/rest/sign", {
+      method: "POST", headers: { "Content-Type": "text/plain" }, body: "{}",
+    }, 5000);
+    show("simple-out", r.status === 415 || r.status === 403, `${r.status} (415 or 403 expected)\n${JSON.stringify(r.body)}`);
+  } catch (e) {
+    show("simple-out", true, `Refused before the page could read an answer, as expected from a foreign origin: ${e}`);
+  }
+};
+</script>
+</body>
+</html>

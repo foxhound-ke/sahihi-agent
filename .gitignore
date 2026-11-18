@@ -8,3 +8,5 @@ src/installers
 !pom.xml
 !.github/
 !.github/**
+!tools/
+!tools/**
