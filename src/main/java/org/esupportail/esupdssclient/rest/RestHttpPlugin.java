@@ -57,8 +57,8 @@ public class RestHttpPlugin implements HttpPlugin {
 		final String target = req.getTarget();
 		logger.info("PathInfo " + target);
 
+		// Sahihi: never log a request body (it holds what is to be signed).
 		final String payload = IOUtils.toString(req.getInputStream(), StandardCharsets.UTF_8);
-		logger.info("Payload '" + payload + "'");
 
 		// Sahihi: only the two routes Sahihi uses, each with a JSON body (the
 		// request processor has checked it's a JSON POST). Upstream's GET forms
@@ -142,6 +142,8 @@ public class RestHttpPlugin implements HttpPlugin {
 	}
 	
 	private HttpResponse toHttpResponse(final Execution<?> respObj) {
+		// Sahihi: the outcome only, never the response (certificates, signature value).
+		logger.info("Outcome: " + (respObj.isSuccess() ? "success" : "error " + respObj.getError()));
 		if (respObj.isSuccess()) {
 			return new HttpResponse(customGson.toJson(respObj), "application/json;charset=UTF-8", HttpStatus.OK);
 		} else {

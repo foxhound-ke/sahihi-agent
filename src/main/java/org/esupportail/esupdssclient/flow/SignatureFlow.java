@@ -69,12 +69,12 @@ class SignatureFlow extends AbstractCoreFlow<SignatureRequest, SignatureResponse
 					if (selectPrivateKeyOperationResult.getStatus().equals(BasicOperationStatus.SUCCESS)) {
 						final DSSPrivateKeyEntry key = selectPrivateKeyOperationResult.getResult();
 
-						logger.info("Key " + key + " " + key.getCertificate().getCertificate().getSubjectX500Principal() + " from " + key.getCertificate().getCertificate().getIssuerX500Principal());
+						logger.info("Key selected");
 						final OperationResult<SignatureValue> signOperationResult = getOperationFactory().getOperation(
 								SignOperation.class, token, req.getToBeSigned(), req.getDigestAlgorithm(), key).perform();
 						if(signOperationResult.getStatus().equals(BasicOperationStatus.SUCCESS)) {
 							final SignatureValue value = signOperationResult.getResult();
-							logger.info("Signature performed " + value);
+							logger.info("Signature performed");
 
 							if ((Boolean) map.get(TokenOperationResultKey.ADVANCED_CREATION)) {
 								getOperationFactory().getOperation(AdvancedCreationFeedbackOperation.class,
