@@ -1,3 +1,13 @@
+# Sahihi signing agent
+
+**This repository is the Sahihi signing agent, a modified version of
+Esup-DSS-Client (EUPL-1.2) by Foxhound Security & Development Consultants Ltd.**
+What it is, what was changed from upstream and when (EUPL article 5), how to
+build it and how to test it: [SAHIHI.md](SAHIHI.md). Upstream's README follows
+unchanged.
+
+---
+
 ![ESUP-DSS-CLIENT](https://github.com/EsupPortail/esup-dss-client/raw/master/src/main/resources/images/logo.png)
 
 # Esup-DSS-Client
