@@ -72,6 +72,7 @@ public class AppConfig {
     private static final String DORKBOX_TRAY_TYPE = "dorkbox_tray_type";
     private static final String DORKBOX_TRAY_NAME = "dorkbox_tray_name";
     private static final String CORS_ALLOWED_ORIGIN = "cors_allowed_origin";
+    private static final String CERTIFICATE_ISSUER = "certificate_issuer";
 
     private static final String TICKET_URL = "ticket_url";
     private static final String ENABLE_INCIDENT_REPORT = "enable_incident_report";
@@ -143,6 +144,8 @@ public class AppConfig {
     private String ticketUrl;
 
     private boolean enableIncidentReport;
+
+    private String certificateIssuer;
 
     private boolean corsAllowAllOrigins;
     private Set<String> corsAllowedOrigins;
@@ -494,6 +497,7 @@ public class AppConfig {
         this.setDorkboxTrayName(props.getProperty(DORKBOX_TRAY_NAME, "org.esupportail.esupdssclient"));
         // Sahihi: no origin is allowed unless the config file names it.
         this.setCorsAllowedOrigins(props.getProperty(CORS_ALLOWED_ORIGIN, ""));
+        this.setCertificateIssuer(props.getProperty(CERTIFICATE_ISSUER, ""));
         this.setTicketUrl(props.getProperty(TICKET_URL, ""));
         this.setEnableIncidentReport(Boolean.parseBoolean(props.getProperty(ENABLE_INCIDENT_REPORT, "false")));
         this.setShowSplashScreen(Boolean.parseBoolean(props.getProperty(SHOW_SPLASH_SCREEN, "false")));
@@ -563,6 +567,15 @@ public class AppConfig {
         this.enableInformativePopUps = enableInformativePopUps;
     }
     
+    /** Sahihi: the issuer DN every offered certificate must have; empty for any. */
+    public String getCertificateIssuer() {
+        return this.certificateIssuer;
+    }
+
+    public void setCertificateIssuer(final String certificateIssuer) {
+        this.certificateIssuer = certificateIssuer;
+    }
+
     public boolean isCorsAllowAllOrigins() {
 		return corsAllowAllOrigins;
 	}

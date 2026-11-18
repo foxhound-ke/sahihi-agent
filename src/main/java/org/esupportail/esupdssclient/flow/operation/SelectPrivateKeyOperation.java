@@ -16,6 +16,7 @@ package org.esupportail.esupdssclient.flow.operation;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.SignatureTokenConnection;
 import org.esupportail.esupdssclient.CancelledOperationException;
+import org.esupportail.esupdssclient.api.SahihiKeyFilter;
 import org.esupportail.esupdssclient.api.CertificateFilter;
 import org.esupportail.esupdssclient.api.EsupDSSClientAPI;
 import org.esupportail.esupdssclient.api.Product;
@@ -81,7 +82,7 @@ public class SelectPrivateKeyOperation extends AbstractCompositeOperation<DSSPri
 
     @Override
     public OperationResult<DSSPrivateKeyEntry> perform() {
-        final List<DSSPrivateKeyEntry> keys;
+        List<DSSPrivateKeyEntry> keys;
 
         try {
             if((this.productAdapter != null) && (this.product != null) && this.productAdapter.supportCertificateFilter(this.product) && (this.certificateFilter != null)) {
@@ -96,6 +97,10 @@ public class SelectPrivateKeyOperation extends AbstractCompositeOperation<DSSPri
         }
 
         DSSPrivateKeyEntry key = null;
+
+        // Sahihi: only signing certificates (and, if configured, one issuer's),
+        // whatever the request asked for, when choosing and again when signing.
+        keys = SahihiKeyFilter.filter(keys, this.api.getAppConfig().getCertificateIssuer());
 
         final Iterator<DSSPrivateKeyEntry> it = keys.iterator();
         while (it.hasNext()) {
