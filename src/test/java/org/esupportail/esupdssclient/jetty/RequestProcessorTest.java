@@ -129,6 +129,26 @@ public class RequestProcessorTest {
 	}
 
 	@Test
+	public void signingNeedsAJsonPost() throws Exception {
+		configure(ALLOWED);
+		header("Origin", ALLOWED);
+		path("/rest/sign");
+		when(request.getMethod()).thenReturn("POST");
+		header("Content-Type", "text/plain");
+		rp.handle(request, response, callback);
+		verify(response).setStatus(415);
+	}
+
+	@Test
+	public void certificatesNeedAPost() throws Exception {
+		configure(ALLOWED);
+		header("Origin", ALLOWED);
+		path("/rest/certificates");
+		rp.handle(request, response, callback);  // a GET
+		verify(response).setStatus(415);
+	}
+
+	@Test
 	public void aPrivateNetworkPreflightIsAnsweredForAnAllowedOrigin() throws Exception {
 		configure(ALLOWED);
 		header("Origin", ALLOWED);

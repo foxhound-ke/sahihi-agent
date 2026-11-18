@@ -43,7 +43,9 @@ import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class RequestProcessor extends Handler.Abstract {
 
@@ -55,6 +57,8 @@ public class RequestProcessor extends Handler.Abstract {
 			.registerTypeAdapter(CertificateToken.class, new CertificateTypeAdapter()).create();
 
 	private static final String UTF8 = "UTF-8";
+
+	private static final Set<String> JSON_ONLY = Set.of("/rest/sign", "/rest/certificates");
 
 	private static final String NEXUJS_TEMPLATE = "nexu.ftl.js";
 
@@ -135,6 +139,20 @@ public class RequestProcessor extends Handler.Abstract {
 			response.setStatus(HttpStatus.OK.getHttpCode());
 			callback.succeeded();
 			return true;
+		}
+
+		// Sahihi: the two routes that open dialogs take only a JSON POST. A JSON
+		// body can't be sent cross-site without a CORS preflight, which the origin
+		// check above has already answered.
+		if (JSON_ONLY.contains(target)) {
+			final String type = request.getHeaders().get("Content-Type");
+			if (!"POST".equals(request.getMethod()) || type == null
+					|| !type.toLowerCase(Locale.ROOT).startsWith("application/json")) {
+				logger.warn("Refused " + loggable(request.getMethod()) + " " + target + ": not a JSON POST");
+				response.setStatus(415);
+				writeResponse(response, "{\"success\":false,\"error\":\"json.post.required\"}");
+				return true;
+			}
 		}
 
 		logger.info("Request " + target);
