@@ -74,7 +74,7 @@ public class AboutController extends AbstractUIOperationController<Void> impleme
 	@Override
 	public void init(Object... params) {
 		final String applicationName = (String) params[0];
-		StageHelper.getInstance().setTitle("Esup-DSS-Client - " + resources.getString("about.header") + " " + applicationName);
+		StageHelper.getInstance().setTitle(resources.getString("about.header") + " " + applicationName);
 		InputStream inputStream = EsupDSSClientPreLoader.class.getResourceAsStream("/images/logo.png");
 		if(inputStream != null) {
 			this.logo.setImage(new Image(inputStream));

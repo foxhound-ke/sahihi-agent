@@ -21,7 +21,7 @@
 	<center>
 		<VBox BorderPane.alignment="CENTER">
          <children>
-            <Label text="Esup-DSS-Client has finished" fx:id="message" styleClass="message" wrapText="true"/>
+            <Label text="Sahihi signing agent has finished" fx:id="message" styleClass="message" wrapText="true"/>
          </children>
 		</VBox>
 	</center>

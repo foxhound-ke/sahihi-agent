@@ -86,7 +86,7 @@ public class EsupDSSClientLauncher {
 			}
 			try (InputStream in = connection.getInputStream()) {
 				final String info = IOUtils.toString(in, StandardCharsets.UTF_8);
-				logger.error("Esup-DSS-Client already started. Version '" + info + "'");
+				logger.error(config.getApplicationName() + " already started. Version '" + info + "'");
 				return true;
 			} catch (Exception e) {
 				logger.info("No " + url.toString() + " detected, " + e.getMessage());

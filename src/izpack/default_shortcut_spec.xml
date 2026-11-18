@@ -3,12 +3,12 @@
                   xmlns:izpack="http://izpack.org/schema/shortcuts"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xsi:schemaLocation="http://izpack.org/schema/shortcuts http://izpack.org/schema/5.0/izpack-shortcuts-5.0.xsd">
-    <shortcut name="Esup DSS Client"
+    <shortcut name="Sahihi signing agent"
               target="$INSTALL_PATH\java\win\zulu$jdk.zulu.version-win_x64\bin\javaw.exe" commandLine="--add-exports javafx.graphics/com.sun.javafx.application=ALL-UNNAMED -jar esup-dss-client.jar"
               workingDirectory="$INSTALL_PATH" description="esupdsslient"
               iconFile="$INSTALL_PATH\icon\esupdssclient.ico" iconIndex="0"
               desktop="yes" applications="yes" startMenu="yes" startup="yes">
-        <createForPack name="Esup DSS Client"/>
+        <createForPack name="Sahihi signing agent"/>
         <os family="windows"/>
     </shortcut>
     <shortcut programGroup="yes"
@@ -17,15 +17,15 @@
               terminal="true"
               KdeSubstUID="false"
               initialState="normal"
-              name="Esup DSS Client" target="$INSTALL_PATH/launch-esup-dss-client.sh"
-              workingDirectory="$INSTALL_PATH" description="Esup DSS Client"
+              name="Sahihi signing agent" target="$INSTALL_PATH/launch-esup-dss-client.sh"
+              workingDirectory="$INSTALL_PATH" description="Sahihi signing agent"
               iconFile="$INSTALL_PATH\icon\icon.png" iconIndex="0"
               desktop="yes" applications="yes" startMenu="yes" startup="yes">
-        <createForPack name="Esup DSS Client"/>
+        <createForPack name="Sahihi signing agent"/>
         <os family="unix" name="debian_linux" />
         <os family="unix" name="ubuntu_linux" />
         <os family="unix" name="linux" />
     </shortcut>
-    <programGroup defaultName="Esup-Signature"
+    <programGroup defaultName="Sahihi"
                   location="applications"/>
 </izpack:shortcuts>

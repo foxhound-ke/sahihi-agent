@@ -91,7 +91,7 @@ public class PreferencesController extends AbstractUIOperationController<Void> i
 	}
 	
 	private void init(final GlobalConfigurer proxyConfigurer) {
-		StageHelper.getInstance().setTitle("Esup-DSS-Client - " + title.getText());
+		StageHelper.getInstance().setTitle(EsupDSSClientLauncher.getConfig().getApplicationName() + " - " + title.getText());
 		if(isWindows) {
 			useSystemProxy.setSelected(proxyConfigurer.isUseSystemProxy());
 		} else {

@@ -4,7 +4,7 @@
                      xsi:schemaLocation="http://izpack.org/schema/installation http://izpack.org/schema/5.0/izpack-installation-5.0.xsd">
 
     <info>
-        <appname>esup-dss-client</appname>
+        <appname>Sahihi signing agent</appname>
         <appversion>@pom.version@</appversion>
         <authors>
             <author name="Université Rouen Normandie"
@@ -111,8 +111,8 @@
                         target="${INSTALL_PATH}/icon/esupdssclient.ico" />
         </pack>
 
-        <pack name="Esup DSS Client" required="yes">
-            <description>Esup DSS Client</description>
+        <pack name="Sahihi signing agent" required="yes">
+            <description>Sahihi signing agent</description>
             <fileset dir="@{izpack.staging}" override="true" />
         </pack>
 
