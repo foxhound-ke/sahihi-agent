@@ -76,19 +76,6 @@
 
     <packs>
 
-        <pack name="Uninstall OpenSC $opensc.version win64" required="yes" hidden="true">
-            <os family="windows" />
-            <description>Uninstall OpenSC win64 $opensc.version</description>
-            <file targetdir="${INSTALL_PATH}" src="OpenSC-$opensc.version_win64.msi" override="true" />
-            <executable targetfile="msiexec.exe" stage="uninstall" failure="ignore" keep="true">
-                <args>
-                    <arg value="\/x"/>
-                    <arg value="${INSTALL_PATH}/OpenSC-$opensc.version_win64.msi"/>
-                    <arg value="\/qn"/>
-                </args>
-                <os family="windows" />
-            </executable>
-        </pack>
 
         <pack name="Uninstall OpenSC $opensc.version linux" required="yes" hidden="true">
             <os family="unix" name="debian_linux" />
@@ -124,19 +111,6 @@
             <fileset dir="../jrelinux" targetdir="${INSTALL_PATH}/java/linux" />
         </pack>
 
-        <pack name="Install OpenSC $opensc.version win64" required="yes">
-            <os family="windows" />
-            <description>Install OpenSC win64 $opensc.version</description>
-            <file targetdir="${INSTALL_PATH}" src="OpenSC-$opensc.version_win64.msi" />
-            <executable targetfile="msiexec.exe" stage="postinstall" failure ="warn" keep="true">
-                <args>
-                    <arg value="\/i"/>
-                    <arg value="${INSTALL_PATH}/OpenSC-$opensc.version_win64.msi"/>
-                    <arg value="\/qn"/>
-                </args>
-                <os family="windows" />
-            </executable>
-        </pack>
 
         <pack name="Install OpenSC $opensc.version linux" required="yes">
             <os family="unix" name="debian_linux" />

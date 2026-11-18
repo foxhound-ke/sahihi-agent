@@ -470,8 +470,6 @@
 						<phase>verify</phase>
 						<configuration>
 							<target unless="mac.oc">
-								<get src="https://github.com/OpenSC/OpenSC/releases/download/${opensc.version}/OpenSC-${opensc.version}_x64.msi"
-									 dest="${izpack.staging}/OpenSC-${opensc.version}_win64.msi" />
 								<get src="https://github.com/OpenSC/OpenSC/releases/download/${opensc.version}/opensc-${opensc.version}.tar.gz"
 									 dest="${izpack.staging}/opensc-0.27.1.tar.gz" />
 								<get src="https://cdn.azul.com/zulu/bin/zulu${jdk.zulu.version}-win_x64.zip"
