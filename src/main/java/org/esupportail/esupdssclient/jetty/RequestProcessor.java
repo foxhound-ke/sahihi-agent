@@ -103,21 +103,33 @@ public class RequestProcessor extends Handler.Abstract {
 			return false;
 		}
 
-		if(api.getAppConfig().isCorsAllowAllOrigins()) {
-			response.getHeaders().add("Access-Control-Allow-Origin", "*");
-		} else {
-			if(api.getAppConfig().getCorsAllowedOrigins().contains(request.getHeaders().get("Origin"))) {
-				response.getHeaders().add("Access-Control-Allow-Origin", request.getHeaders().get("Origin"));
-			} else {
-				// No match ==> use first value returned by iterator and log a warning
-				logger.warn(request.getHeaders().get("Origin") + " does not match any value in corsAllowedOrigins: "
-						+ api.getAppConfig().getCorsAllowedOrigins());
-				response.getHeaders().add("Access-Control-Allow-Origin", api.getAppConfig().getCorsAllowedOrigins().iterator().next());
-			}
+		// Sahihi: CORS only stops a page from reading an answer; it doesn't stop a
+		// cross-site request from reaching the agent and opening its dialogs. So
+		// refuse every request whose Origin isn't one of cors_allowed_origin (from
+		// sahihi-agent.properties) before doing anything else, preflights included.
+		// The one exception is the launcher's own "already started?" check, a GET
+		// of /nexu-info with no Origin, which only returns the version.
+		final String origin = request.getHeaders().get("Origin");
+		final boolean ownCheck = origin == null && "GET".equals(request.getMethod())
+				&& "/nexu-info".equals(target);
+		if (!ownCheck && (origin == null || !api.getAppConfig().getCorsAllowedOrigins().contains(origin))) {
+			logger.warn("Refused " + loggable(request.getMethod()) + " " + loggable(target)
+					+ " from origin " + loggable(origin));
+			response.setStatus(403);
+			writeResponse(response, "{\"success\":false,\"error\":\"origin.refused\"}");
+			return true;
+		}
+		if (origin != null) {
+			response.getHeaders().add("Access-Control-Allow-Origin", origin);
 		}
 		response.getHeaders().add("Vary", "Origin");
 		response.getHeaders().add("Access-Control-Allow-Methods", "OPTIONS, GET, POST");
 		response.getHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+		// Chrome's Private Network Access preflight, before Local Network Access
+		// replaced it with a permission prompt.
+		if ("true".equals(request.getHeaders().get("Access-Control-Request-Private-Network"))) {
+			response.getHeaders().add("Access-Control-Allow-Private-Network", "true");
+		}
 
 		if ("OPTIONS".equals(request.getMethod())) {
 			response.setStatus(HttpStatus.OK.getHttpCode());
@@ -153,6 +165,15 @@ public class RequestProcessor extends Handler.Abstract {
 			}
 		}
 		return false;
+	}
+
+	/** A request value as it may go in the log: no line breaks, at most 200 chars. */
+	static String loggable(final String value) {
+		if (value == null) {
+			return "(none)";
+		}
+		final String clean = value.replaceAll("[\\p{Cntrl}]", "_");
+		return clean.length() > 200 ? clean.substring(0, 200) + "..." : clean;
 	}
 
 	private void httpPlugin(String target, Request request, Response response) throws Exception {

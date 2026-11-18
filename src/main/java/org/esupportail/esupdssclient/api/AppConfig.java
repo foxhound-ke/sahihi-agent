@@ -492,7 +492,8 @@ public class AppConfig {
         this.setSystrayBackend(props.getProperty(SYSTRAY_BACKEND, "auto"));
         this.setDorkboxTrayType(props.getProperty(DORKBOX_TRAY_TYPE, "auto"));
         this.setDorkboxTrayName(props.getProperty(DORKBOX_TRAY_NAME, "org.esupportail.esupdssclient"));
-        this.setCorsAllowedOrigins(props.getProperty(CORS_ALLOWED_ORIGIN, "*"));
+        // Sahihi: no origin is allowed unless the config file names it.
+        this.setCorsAllowedOrigins(props.getProperty(CORS_ALLOWED_ORIGIN, ""));
         this.setTicketUrl(props.getProperty(TICKET_URL, ""));
         this.setEnableIncidentReport(Boolean.parseBoolean(props.getProperty(ENABLE_INCIDENT_REPORT, "false")));
         this.setShowSplashScreen(Boolean.parseBoolean(props.getProperty(SHOW_SPLASH_SCREEN, "false")));
@@ -571,17 +572,21 @@ public class AppConfig {
     }
 
     public void setCorsAllowedOrigins(final String corsAllowedOrigins) {
-    	if("*".equals(corsAllowedOrigins)) {
-    		this.corsAllowAllOrigins = true;
-    		this.corsAllowedOrigins = Collections.emptySet();
-    	} else {
-    		this.corsAllowAllOrigins = false;
-    		final String[] corsAllowedOriginsArray = corsAllowedOrigins.split(",");
-    		this.corsAllowedOrigins = new HashSet<String>(corsAllowedOriginsArray.length);
-    		for(final String corsAllowedOrigin : corsAllowedOriginsArray) {
-    			this.corsAllowedOrigins.add(corsAllowedOrigin.trim());
-    		}
-    	}
+        // Sahihi: every origin is listed; "*" (any web page) is refused.
+        this.corsAllowAllOrigins = false;
+        this.corsAllowedOrigins = new HashSet<String>();
+        for (final String origin : corsAllowedOrigins.split(",")) {
+            final String trimmed = origin.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            if ("*".equals(trimmed)) {
+                logger.error("cors_allowed_origin may not be \"*\"; ignoring it.");
+                continue;
+            }
+            this.corsAllowedOrigins.add(trimmed);
+        }
+        this.corsAllowedOrigins = Collections.unmodifiableSet(this.corsAllowedOrigins);
     }
 
     public String getTicketUrl() {
