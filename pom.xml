@@ -2,8 +2,9 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.esupportail</groupId>
 	<artifactId>esupdssclient</artifactId>
-	<!-- Sahihi: upstream's version, then -sahihi.N for each Foxhound build of it. -->
-	<version>1.3.0-sahihi.1</version>
+	<!-- Sahihi: upstream's version, then -sahihiN for each Foxhound build of it
+	     (no dot after "sahihi": Launch4j refuses it; see the enforcer below). -->
+	<version>1.3.0-sahihi1</version>
 	<packaging>jar</packaging>
 	<name>Esup-DSS-Client</name>
 	<description>Multi-browser, multi-platform, OpenSC remote signature tool.</description>
@@ -353,6 +354,33 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
+			<!-- Sahihi: the launch4j plugin (in verify, after the tests and the
+			     installer) refuses a project.version that doesn't match its
+			     pattern, Launch4jFileVersionGenerator's, so check it here first. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.5.0</version>
+				<executions>
+					<execution>
+						<id>launch4j-version-format</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireProperty>
+									<property>project.version</property>
+									<regex>^((\d(\.)?)*\d+)(-\w+)?$</regex>
+									<regexMessage>project.version "${project.version}" doesn't match Launch4j's pattern ^((\d(\.)?)*\d+)(-\w+)?$, so the Windows installer can't be built. Use digits and dots, then at most one suffix of letters, digits or _ after a hyphen, e.g. 1.3.0-sahihi1.</regexMessage>
+								</requireProperty>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>

@@ -1,6 +1,6 @@
 name: Release the Windows agent
 
-# Sahihi: pushing a tag v<version> (the pom's version, e.g. v1.3.0-sahihi.1)
+# Sahihi: pushing a tag v<version> (the pom's version, e.g. v1.3.0-sahihi1)
 # builds the Windows zip on windows-latest and publishes a GitHub Release with
 # the zip and its SHA-256. The release is the download Sahihi links to
 # (SAHIHI_AGENT_DOWNLOAD_URL); its source is this repository at the tag (EUPL-1.2).

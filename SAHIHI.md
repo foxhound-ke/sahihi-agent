@@ -21,8 +21,10 @@ NexU. Both are under the European Union Public Licence, version 1.2
 <https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12>). The fork is
 under the same licence.
 
-- Versions are upstream's, then `-sahihi.N` for each Foxhound build of it:
-  this one is `1.3.0-sahihi.1`. The agent reports it in `/rest/info`.
+- Versions are upstream's, then `-sahihiN` for each Foxhound build of it:
+  this one is `1.3.0-sahihi1`. The agent reports it in `/rest/info`. No dot
+  after `sahihi`: the Windows installer's Launch4j wrapper accepts only
+  `^((\d(\.)?)*\d+)(-\w+)?$`, and the build checks that first.
 - Upstream: `https://github.com/EsupPortail/esup-dss-client`, tag `1.3.0`,
   commit `0066a88e93dbd3adaad4955c91ac4550000b5731` (17 Jul 2026).
 - Modified by Foxhound Security & Development Consultants Ltd. As EUPL
@@ -52,6 +54,7 @@ Made on 18 Nov 2026, except where a row starts with another date.
 | `tools/spike.html` and `tools/verify_signature.py`. | The spike below. |
 | **19 Nov 2026.** Pushing a tag `v<version>` (the pom's version) builds the Windows zip on `windows-latest` and publishes a GitHub Release with `sahihi-agent-<version>-win64.zip`, its `.sha256`, and notes saying it's an unsigned demo build under the EUPL with its source at the tag (`.github/workflows/release.yml`). | The release is what Sahihi links signers to (`SAHIHI_AGENT_DOWNLOAD_URL`), with the source beside it. |
 | **19 Nov 2026.** `version.txt` (what `/rest/info` and the logs report) and the About window's `display_version` are filled in from the pom's version at build time, instead of upstream's fixed `1.0` and `1.3.0`. | Sahihi refuses an agent older than `SAHIHI_AGENT_MIN_VERSION`, which needs each build to say which build it is. |
+| **19 Nov 2026.** Versions are `<upstream>-sahihiN` (`1.3.0-sahihi1`), not `-sahihi.N`, and the build fails in `validate` (maven-enforcer-plugin) when the pom's version doesn't match Launch4j's pattern. | Launch4j refused `1.3.0-sahihi.1` at the end of the build, after the tests and the installer; no release of it was published. |
 
 Not changed, and why:
 
@@ -131,13 +134,13 @@ refused, and the agent makes no outbound connections.
 
 ## Releasing
 
-1. Set the pom's `<version>` (upstream's version, then `-sahihi.N`) and add
+1. Set the pom's `<version>` (upstream's version, then `-sahihiN`) and add
    the change to the table above, with its date.
 2. Commit, push `main`, then tag and push the tag:
 
    ```sh
-   git tag -a v1.3.0-sahihi.1 -m "Sahihi signing agent 1.3.0-sahihi.1"
-   git push origin v1.3.0-sahihi.1
+   git tag -a v1.3.0-sahihi1 -m "Sahihi signing agent 1.3.0-sahihi1"
+   git push origin v1.3.0-sahihi1
    ```
 
 3. The release workflow refuses a tag that isn't `v` + the pom's version,
