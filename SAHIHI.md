@@ -21,6 +21,8 @@ NexU. Both are under the European Union Public Licence, version 1.2
 <https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12>). The fork is
 under the same licence.
 
+- Versions are upstream's, then `-sahihi.N` for each Foxhound build of it:
+  this one is `1.3.0-sahihi.1`. The agent reports it in `/rest/info`.
 - Upstream: `https://github.com/EsupPortail/esup-dss-client`, tag `1.3.0`,
   commit `0066a88e93dbd3adaad4955c91ac4550000b5731` (17 Jul 2026).
 - Modified by Foxhound Security & Development Consultants Ltd. As EUPL
