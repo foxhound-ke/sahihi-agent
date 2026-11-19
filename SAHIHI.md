@@ -32,7 +32,7 @@ under the same licence.
 
 ## Changes from upstream 1.3.0
 
-All made on 18 Nov 2026.
+Made on 18 Nov 2026, except where a row starts with another date.
 
 | Change | Why |
 |---|---|
@@ -48,6 +48,7 @@ All made on 18 Nov 2026.
 | `GET /rest/info`: `{"name", "version", "keySources"}`. | The Advanced page's first call: is the agent there, and new enough? |
 | CI builds the Windows zip on `windows-latest` and keeps it, with its SHA-256, as an artifact. | The agent ships for Windows. |
 | `tools/spike.html` and `tools/verify_signature.py`. | The spike below. |
+| **19 Nov 2026.** `version.txt` (what `/rest/info` and the logs report) and the About window's `display_version` are filled in from the pom's version at build time, instead of upstream's fixed `1.0` and `1.3.0`. | Sahihi refuses an agent older than `SAHIHI_AGENT_MIN_VERSION`, which needs each build to say which build it is. |
 
 Not changed, and why:
 
