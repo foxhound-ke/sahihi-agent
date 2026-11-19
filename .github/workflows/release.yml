@@ -1,0 +1,81 @@
+name: Release the Windows agent
+
+# Sahihi: pushing a tag v<version> (the pom's version, e.g. v1.3.0-sahihi.1)
+# builds the Windows zip on windows-latest and publishes a GitHub Release with
+# the zip and its SHA-256. The release is the download Sahihi links to
+# (SAHIHI_AGENT_DOWNLOAD_URL); its source is this repository at the tag (EUPL-1.2).
+# Unsigned: the demo doesn't need Authenticode; production does (SAHIHI.md).
+
+on:
+  push:
+    tags: [ "v*" ]
+
+permissions:
+  contents: write   # to create the release
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: The tag is the pom's version
+        id: version
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content pom.xml)).project.version
+          if ("v$version" -ne "${{ github.ref_name }}") {
+            throw "Tag ${{ github.ref_name }} isn't v + the pom's version ($version)."
+          }
+          "version=$version" | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build and test (jar, installer, Windows zip)
+        run: mvn -B -ntp clean install
+
+      - name: Name the zip after the version, with its SHA-256
+        id: zip
+        shell: pwsh
+        run: |
+          $name = "sahihi-agent-${{ steps.version.outputs.version }}-win64.zip"
+          Copy-Item target/esup-dss-client-win64.zip $name
+          $hash = (Get-FileHash $name -Algorithm SHA256).Hash.ToLower()
+          "$hash  $name" | Out-File -Encoding ascii "$name.sha256"
+          Get-Content "$name.sha256"
+          "name=$name" | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT
+          "sha256=$hash" | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT
+
+      - name: Publish the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $name = "${{ steps.zip.outputs.name }}"
+          $notes = @"
+          Sahihi signing agent ${{ steps.version.outputs.version }} for Windows: the
+          installer and its Java runtime, for Advanced signatures in Sahihi.
+
+          SHA-256 of ${name}:
+
+              ${{ steps.zip.outputs.sha256 }}
+
+          Check it before installing (PowerShell: ``Get-FileHash ${name} -Algorithm SHA256``).
+
+          A demonstration build for Sahihi's proof of concept: unsigned, so Windows
+          SmartScreen will warn, and documents signed on the PoC have no legal effect.
+
+          A modified version of Esup-DSS-Client, under the European Union Public
+          Licence 1.2. The source is this repository at ${{ github.ref_name }};
+          what changed from upstream, and when, is in SAHIHI.md.
+          "@
+          gh release create "${{ github.ref_name }}" "$name" "$name.sha256" `
+            --title "Sahihi signing agent ${{ steps.version.outputs.version }}" `
+            --notes $notes `
+            --verify-tag

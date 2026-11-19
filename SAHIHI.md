@@ -28,9 +28,9 @@ under the same licence.
 - Modified by Foxhound Security & Development Consultants Ltd. As EUPL
   article 5 requires, every change is listed below with its date, and each is
   its own commit on top of the upstream tag.
-- The source is published wherever an installer is offered: the agent's
-  repository under Foxhound's GitHub organisation, linked next to every
-  download (with its SHA-256) on `trust.foxhound.co.ke`.
+- The source is published wherever an installer is offered: each release on
+  <https://github.com/foxhound-ke/sahihi-agent/releases> carries the zip and
+  its SHA-256, built from this repository at the release's tag.
 
 ## Changes from upstream 1.3.0
 
@@ -50,6 +50,7 @@ Made on 18 Nov 2026, except where a row starts with another date.
 | `GET /rest/info`: `{"name", "version", "keySources"}`. | The Advanced page's first call: is the agent there, and new enough? |
 | CI builds the Windows zip on `windows-latest` and keeps it, with its SHA-256, as an artifact. | The agent ships for Windows. |
 | `tools/spike.html` and `tools/verify_signature.py`. | The spike below. |
+| **19 Nov 2026.** Pushing a tag `v<version>` (the pom's version) builds the Windows zip on `windows-latest` and publishes a GitHub Release with `sahihi-agent-<version>-win64.zip`, its `.sha256`, and notes saying it's an unsigned demo build under the EUPL with its source at the tag (`.github/workflows/release.yml`). | The release is what Sahihi links signers to (`SAHIHI_AGENT_DOWNLOAD_URL`), with the source beside it. |
 | **19 Nov 2026.** `version.txt` (what `/rest/info` and the logs report) and the About window's `display_version` are filled in from the pom's version at build time, instead of upstream's fixed `1.0` and `1.3.0`. | Sahihi refuses an agent older than `SAHIHI_AGENT_MIN_VERSION`, which needs each build to say which build it is. |
 
 Not changed, and why:
@@ -128,8 +129,24 @@ Personal store and the agent installed from the CI zip:
 Done when the signature verifies in all three browsers, the foreign origin is
 refused, and the agent makes no outbound connections.
 
+## Releasing
+
+1. Set the pom's `<version>` (upstream's version, then `-sahihi.N`) and add
+   the change to the table above, with its date.
+2. Commit, push `main`, then tag and push the tag:
+
+   ```sh
+   git tag -a v1.3.0-sahihi.1 -m "Sahihi signing agent 1.3.0-sahihi.1"
+   git push origin v1.3.0-sahihi.1
+   ```
+
+3. The release workflow refuses a tag that isn't `v` + the pom's version,
+   builds and tests on Windows, and publishes the release. Its zip's URL is
+   `https://github.com/foxhound-ke/sahihi-agent/releases/download/v<version>/sahihi-agent-<version>-win64.zip`,
+   which goes in foxhound-pki's `sahihi_agent_download_url`.
+
 ## Remotes
 
+`origin` is <https://github.com/foxhound-ke/sahihi-agent> (public).
 `upstream` is EsupPortail's repository, for fetching only (pushing to it is
-disabled in this clone). The repository is public from the start under
-Foxhound's GitHub organisation once that exists; nothing has been pushed yet.
+disabled in this clone).
